@@ -15,17 +15,32 @@ const enquiryRoutes = require("./routes/enquiries");
 const { seedIfEmpty } = require("./seed");
 
 const PORT = process.env.PORT || 4000;
-const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN || "http://localhost:5173";
+const normalizeOrigin = (origin) => origin.trim().replace(/\/+$/, "");
+const CLIENT_ORIGINS = (process.env.CLIENT_ORIGINS || process.env.CLIENT_ORIGIN || "http://localhost:5173")
+  .split(",")
+  .map(normalizeOrigin)
+  .filter(Boolean);
+const ALLOW_VERCEL_PREVIEWS = process.env.ALLOW_VERCEL_PREVIEWS === "true";
+
+function isAllowedOrigin(origin) {
+  const normalized = normalizeOrigin(origin);
+  if (CLIENT_ORIGINS.includes(normalized)) return true;
+  return ALLOW_VERCEL_PREVIEWS && /^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(normalized);
+}
 
 async function start() {
   await connectDatabase();
   await seedIfEmpty();
 
   const app = express();
+  app.set("trust proxy", 1);
 
   app.use(
     cors({
-      origin: CLIENT_ORIGIN,
+      origin(origin, callback) {
+        if (!origin || isAllowedOrigin(origin)) return callback(null, true);
+        return callback(new Error(`CORS blocked origin: ${origin}`));
+      },
       credentials: true
     })
   );
@@ -60,7 +75,8 @@ async function start() {
 
   app.listen(PORT, () => {
     console.log(`[server] listening on http://localhost:${PORT}`);
-    console.log(`[server] CORS allowing ${CLIENT_ORIGIN} with credentials`);
+    console.log(`[server] CORS allowing ${CLIENT_ORIGINS.join(", ")} with credentials`);
+    if (ALLOW_VERCEL_PREVIEWS) console.log("[server] CORS allowing Vercel preview deployments");
   });
 }
 
