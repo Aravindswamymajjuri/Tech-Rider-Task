@@ -1,7 +1,11 @@
 const API_BASE = (import.meta.env.VITE_API_BASE_URL || "").replace(/\/$/, "");
 
+export function apiUrl(path) {
+  return `${API_BASE}${path}`;
+}
+
 async function request(path, init = {}) {
-  const url = `${API_BASE}${path}`;
+  const url = apiUrl(path);
   const res = await fetch(url, {
     credentials: "include",
     headers: {

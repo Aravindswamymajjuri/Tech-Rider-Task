@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Building2, User2, Plane, Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { api } from "@/lib/api";
+import { api, apiUrl } from "@/lib/api";
 import { useSession } from "@/lib/session";
 
 const portals = [
@@ -130,8 +130,8 @@ export function LoginCard() {
           <span className="h-px flex-1 bg-ink-100" />
         </div>
         <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2">
-          <SocialBtn label="Google" enabled={providers.google} href="/api/auth/google" />
-          <SocialBtn label="Microsoft" enabled={providers.microsoft} href="/api/auth/microsoft" />
+          <SocialBtn label="Google" enabled={providers.google} href={apiUrl("/api/auth/google")} />
+          <SocialBtn label="Microsoft" enabled={providers.microsoft} href={apiUrl("/api/auth/microsoft")} />
         </div>
 
         <div className="mt-5 flex items-center gap-2 text-[12px] text-ink-500">
